@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a2540'/%3E%3Cellipse cx='16' cy='21' rx='12' ry='3' fill='%23fff'/%3E%3Cpath d='M9 19 C9 10 23 10 23 19 Z' fill='%23fff'/%3E%3Crect x='8.6' y='17.4' width='14.8' height='2.5' rx='1.25' fill='%23f6a821'/%3E%3C/svg%3E">
 <style>
   :root{
     --navy:#0a2540; --navy2:#0e2f52; --navy3:#13395f;
@@ -177,6 +178,23 @@
   .cov{display:flex;flex-wrap:wrap;gap:7px}
   .cov span{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;color:var(--muted)}
 
+  /* ===== hero ===== */
+  .hero{position:relative;display:flex;align-items:center;gap:20px;overflow:hidden;color:#fff;
+    background:linear-gradient(120deg,#0a2540,#0e2f52 52%,#10543a);border-radius:18px;padding:24px 28px;margin-bottom:22px;
+    box-shadow:0 6px 22px rgba(10,37,64,.25)}
+  .hero::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 86% 26%,rgba(246,168,33,.2),transparent 46%);pointer-events:none}
+  .hero-txt{flex:1;min-width:0;position:relative;z-index:1}
+  .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+    padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-bottom:11px}
+  .hero-txt h2{margin:0 0 6px;font-size:29px;font-weight:900;letter-spacing:-.7px;line-height:1.05}
+  .hero-txt p{margin:0 0 16px;font-size:14px;color:#c6d4e3;max-width:430px;line-height:1.5}
+  .hero-cta{display:flex;gap:10px;flex-wrap:wrap}
+  .hero .btn-gold{background:var(--gold);color:#06182b;box-shadow:0 2px 10px rgba(246,168,33,.35)}.hero .btn-gold:hover{background:#e39a16}
+  .hero .btn-glass{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.22)}.hero .btn-glass:hover{background:rgba(255,255,255,.2)}
+  .hero-art{flex-shrink:0;width:250px;position:relative;z-index:1}
+  .hero-art svg{display:block;width:100%;height:auto}
+  @media(max-width:640px){.hero-art{display:none}.hero-txt h2{font-size:23px}.hero{padding:20px 22px}}
+
   /* ===== cert levels ===== */
   .lvl{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
   .lvl1{background:#e0f2fe;color:#075985} .lvl2{background:#ede9fe;color:#6d28d9} .lvl3{background:#fef3c7;color:#92400e}
@@ -255,7 +273,7 @@
 <header>
   <div class="hd">
     <div class="brand">
-      <div class="mark">&#127951;</div>
+      <div class="mark"><svg viewBox="0 0 32 24" width="26" height="20" aria-hidden="true"><ellipse cx="16" cy="17.2" rx="12.8" ry="3.3" fill="#fff"/><path d="M8.8 15.6 C8.8 6.4 23.2 6.4 23.2 15.6 Z" fill="#fff"/><rect x="8.4" y="13.9" width="15.2" height="2.7" rx="1.35" fill="#0a2540"/></svg></div>
       <div><div class="nm">CricUmp</div><div class="tg">Umpire scheduling for local cricket</div></div>
     </div>
     <div class="spacer"></div>
@@ -281,6 +299,42 @@
 
   <!-- MATCHES -->
   <div id="view-matches" class="view active">
+    <div class="hero">
+      <div class="hero-txt">
+        <div class="hero-badge">&#127951; Seattle Youth Cricket League</div>
+        <h2>Umpires, sorted.</h2>
+        <p>Post a match and get qualified, available umpires confirmed in minutes &mdash; not a week of WhatsApp messages.</p>
+        <div class="hero-cta">
+          <button class="btn-gold" onclick="go('post')">&#128221; Post a match</button>
+          <button class="btn-glass" onclick="go('directory')">View umpires</button>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+          <path d="M-10 150 Q130 108 270 150 L270 182 L-10 182 Z" fill="#15935a" opacity=".3"/>
+          <ellipse cx="156" cy="150" rx="66" ry="9" fill="#06182b" opacity=".4"/>
+          <path d="M70 120 C110 58 152 58 178 104" stroke="#f6a821" stroke-width="2.4" stroke-dasharray="1.5 7" stroke-linecap="round" fill="none" opacity=".85"/>
+          <!-- stumps -->
+          <rect x="150" y="80" width="6" height="58" rx="3" fill="#eef2f7"/>
+          <rect x="162" y="80" width="6" height="58" rx="3" fill="#eef2f7"/>
+          <rect x="174" y="80" width="6" height="58" rx="3" fill="#eef2f7"/>
+          <rect x="150" y="75" width="17" height="4.5" rx="2.2" fill="#f6a821"/>
+          <rect x="163" y="75" width="17" height="4.5" rx="2.2" fill="#f6a821"/>
+          <!-- ball -->
+          <circle cx="70" cy="120" r="17" fill="#c62828"/>
+          <path d="M60 111 Q70 120 60 129" stroke="#fff" stroke-width="1.5" fill="none" stroke-dasharray="2 2.4"/>
+          <path d="M80 111 Q70 120 80 129" stroke="#fff" stroke-width="1.5" fill="none" stroke-dasharray="2 2.4"/>
+          <ellipse cx="64" cy="114" rx="4" ry="2.5" fill="#fff" opacity=".28"/>
+          <!-- umpire hat -->
+          <g transform="translate(144 16) rotate(-8)">
+            <ellipse cx="40" cy="34" rx="40" ry="10" fill="#f3ede1"/>
+            <path d="M10 32 C10 5 70 5 70 32 Z" fill="#faf6ee"/>
+            <rect x="8" y="28" width="64" height="5" rx="2.5" fill="#13395f"/>
+            <rect x="8" y="27" width="64" height="2.4" rx="1.2" fill="#f6a821"/>
+          </g>
+        </svg>
+      </div>
+    </div>
     <div class="grid">
       <div class="main">
         <div class="sec-h"><h1>Fixtures &amp; Assignments</h1><span class="mut" id="match-count"></span></div>
@@ -369,7 +423,7 @@
 <footer>
   <div class="ft">
     <div>
-      <div class="fb"><span class="mark">&#127951;</span> CricUmp</div>
+      <div class="fb"><span class="mark"><svg viewBox="0 0 32 24" width="22" height="17" aria-hidden="true"><ellipse cx="16" cy="17.2" rx="12.8" ry="3.3" fill="#fff"/><path d="M8.8 15.6 C8.8 6.4 23.2 6.4 23.2 15.6 Z" fill="#fff"/><rect x="8.4" y="13.9" width="15.2" height="2.7" rx="1.35" fill="#0a2540"/></svg></span> CricUmp</div>
       <p>Finding and scheduling umpires for US local and youth cricket leagues. Built to bring transparency and cut the WhatsApp scramble. Seattle first.</p>
     </div>
     <div>
