@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CricUmp — Umpire Scheduling Demo</title>
+<style>
+  :root{
+    --navy:#0b2545; --blue:#1565c0; --teal:#0f766e; --amber:#b45309;
+    --red:#b91c1c; --green:#15803d; --ink:#1f2937; --muted:#64748b;
+    --soft:#f1f5f9; --line:#e2e8f0; --bg:#f8fafc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  a{color:inherit;text-decoration:none}
+  .topbar{position:sticky;top:0;z-index:20;background:linear-gradient(135deg,var(--navy),var(--blue));
+    color:#fff;display:flex;align-items:center;justify-content:space-between;
+    padding:12px 18px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px}
+  .brand .logo{width:30px;height:30px;border-radius:8px;background:#fff;color:var(--navy);
+    display:grid;place-items:center;font-size:18px}
+  .role{display:flex;align-items:center;gap:8px;font-size:13px}
+  .role select{border:none;border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600;background:rgba(255,255,255,.18);color:#fff;cursor:pointer}
+  .role select option{color:#000}
+  .tabs{display:flex;gap:4px;background:#fff;border-bottom:1px solid var(--line);
+    padding:0 12px;overflow-x:auto;position:sticky;top:54px;z-index:19}
+  .tab{padding:14px 16px;font-size:14px;font-weight:600;color:var(--muted);
+    border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+  .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+  .wrap{max-width:900px;margin:0 auto;padding:18px 14px 80px}
+  .view{display:none} .view.active{display:block}
+  h2.title{font-size:20px;margin:4px 0 2px} .lead{color:var(--muted);font-size:14px;margin:0 0 16px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .match-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .match-title{font-weight:700;font-size:16px;margin:0}
+  .meta{color:var(--muted);font-size:13px;margin:6px 0 0;line-height:1.7}
+  .meta b{color:var(--ink);font-weight:600}
+  .badge{display:inline-block;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+  .b-open{background:#fef3c7;color:#92400e}
+  .b-filled{background:#dbeafe;color:#1e40af}
+  .b-confirmed{background:#dcfce7;color:#166534}
+  .slots{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .slot{border:1px dashed var(--line);border-radius:10px;padding:8px 12px;font-size:13px;flex:1;min-width:150px}
+  .slot.filled{border-style:solid;border-color:#bfdbfe;background:#f0f7ff}
+  .slot .who{font-weight:600}
+  .slot .cert{font-size:11px;color:var(--muted)}
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-weight:600;font-size:14px;padding:9px 15px;transition:.15s}
+  .btn-primary{background:var(--blue);color:#fff} .btn-primary:hover{background:#0d4ea0}
+  .btn-green{background:var(--green);color:#fff} .btn-green:hover{background:#116330}
+  .btn-ghost{background:var(--soft);color:var(--ink)} .btn-ghost:hover{background:#e2e8f0}
+  .btn-red{background:#fee2e2;color:var(--red)} .btn-red:hover{background:#fecaca}
+  .btn-sm{padding:6px 11px;font-size:13px}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px}
+  input,select.fld,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);
+    border-radius:10px;font-size:14px;font-family:inherit;background:#fff}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+  .ump{display:flex;align-items:center;gap:12px}
+  .avatar{width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:16px;flex-shrink:0}
+  .ump-info{flex:1}
+  .ump-name{font-weight:700;font-size:15px}
+  .ump-sub{font-size:12px;color:var(--muted)}
+  .lvl{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+  .lvl1{background:#e0f2fe;color:#075985}
+  .lvl2{background:#ddd6fe;color:#5b21b6}
+  .lvl3{background:#fef9c3;color:#854d0e}
+  .day-row{display:flex;align-items:center;justify-content:space-between;padding:11px 2px;border-bottom:1px solid var(--line)}
+  .switch{position:relative;width:46px;height:26px}
+  .switch input{display:none}
+  .track{position:absolute;inset:0;background:#cbd5e1;border-radius:999px;transition:.2s}
+  .knob{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s}
+  .switch input:checked + .track{background:var(--green)}
+  .switch input:checked + .track .knob{left:23px}
+  .notif{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .notif .ico{font-size:16px}
+  .notif .t{color:var(--muted);font-size:11px}
+  .demo-banner{background:#fffbeb;border:1px solid #fde68a;color:#92400e;font-size:12.5px;
+    border-radius:10px;padding:9px 13px;margin-bottom:16px}
+  .empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:14px}
+  .stat-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .stat{flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .stat .n{font-size:24px;font-weight:800;color:var(--navy)}
+  .stat .l{font-size:12px;color:var(--muted)}
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);
+    background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);transition:.3s;z-index:50;max-width:90%}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  .filterbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .chip{padding:6px 13px;border-radius:999px;font-size:13px;font-weight:600;background:#fff;
+    border:1px solid var(--line);color:var(--muted);cursor:pointer}
+  .chip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="logo">&#127951;</span> CricUmp</div>
+  <div class="role">
+    <span>Viewing as</span>
+    <select id="roleSelect" onchange="setRole(this.value)">
+      <option value="organizer">League Organizer</option>
+      <option value="umpire">Umpire (Ravi K.)</option>
+    </select>
+  </div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="wrap">
+  <div class="demo-banner">
+    &#9888;&#65039; <b>Demo preview.</b> No backend yet. Data is sample-only and saved in your browser (localStorage). Use the "Viewing as" switch to see both sides. Feedback welcome.
+  </div>
+
+  <div id="view-matches" class="view active">
+    <h2 class="title">Matches</h2>
+    <p class="lead">Open assignments that need umpires. Replace the WhatsApp chase.</p>
+    <div class="stat-row" id="stats"></div>
+    <div class="filterbar" id="matchFilter"></div>
+    <div id="matchList"></div>
+  </div>
+
+  <div id="view-post" class="view">
+    <h2 class="title">Post a Match</h2>
+    <p class="lead">Fill the details once; umpires get notified automatically.</p>
+    <div class="card">
+      <div class="grid2">
+        <div><label>Home team</label><input id="f-home" placeholder="Redmond Rangers U15"></div>
+        <div><label>Away team</label><input id="f-away" placeholder="Bellevue Blasters U15"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Date</label><input id="f-date" type="date"></div>
+        <div><label>Start time</label><input id="f-time" type="time" value="09:00"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Ground</label><input id="f-ground" placeholder="Marymoor Park, Redmond"></div>
+        <div><label>Format</label>
+          <select id="f-format" class="fld">
+            <option>T20 (20 overs)</option>
+            <option>T10 (10 overs)</option>
+            <option>40 overs</option>
+            <option>50 overs</option>
+            <option>Youth / Pairs</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div><label>Umpires needed</label>
+          <select id="f-slots" class="fld"><option>1</option><option selected>2</option><option>3 (2 + scorer)</option></select>
+        </div>
+        <div><label>Min certification</label>
+          <select id="f-cert" class="fld"><option value="0">Any</option><option value="1">Level 1+</option><option value="2">Level 2+</option><option value="3">Level 3</option></select>
+        </div>
+      </div>
+      <label>Match fee per umpire (USD)</label><input id="f-fee" type="number" value="40" min="0">
+      <p class="hint">Fee is informational in the demo. Payments are out of scope for v1.</p>
+      <div class="row-actions">
+        <button class="btn-primary" onclick="postMatch()">Post match &amp; notify umpires</button>
+        <button class="btn-ghost" onclick="go('matches')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-directory" class="view">
+    <h2 class="title">Umpire Directory</h2>
+    <p class="lead">Certification level (USA Cricket Level 1&ndash;3) is a first-class trust signal.</p>
+    <div id="umpList"></div>
+  </div>
+
+  <div id="view-availability" class="view">
+    <h2 class="title">My Availability</h2>
+    <p class="lead">Set the days you're free. Organizers only offer you matches when you're available.</p>
+    <div class="card" id="availCard"></div>
+    <p class="hint">Demo: availability is for sample umpire "Ravi K."</p>
+  </div>
+
+  <div id="view-notifs" class="view">
+    <h2 class="title">Notifications</h2>
+    <p class="lead">What would arrive by email / SMS in the real app.</p>
+    <div class="card" id="notifList"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ---------------- seed data ---------------- */
+const SEED = {
+  role: 'organizer',
+  me: 'Ravi K.',
+  umpires: [
+    {id:'u1', name:'Ravi K.',     cert:2, area:'Redmond',  phone:'***-**42', avail:{Mon:false,Tue:false,Wed:true,Thu:false,Fri:false,Sat:true,Sun:true}},
+    {id:'u2', name:'Sanjay M.',   cert:3, area:'Bellevue', phone:'***-**17', avail:{Mon:false,Tue:false,Wed:false,Thu:false,Fri:false,Sat:true,Sun:true}},
+    {id:'u3', name:'Imran S.',    cert:1, area:'Sammamish',phone:'***-**08', avail:{Mon:false,Tue:true,Wed:false,Thu:false,Fri:false,Sat:true,Sun:false}},
+    {id:'u4', name:'David O.',    cert:2, area:'Redmond',  phone:'***-**55', avail:{Mon:false,Tue:false,Wed:false,Thu:false,Fri:false,Sat:false,Sun:true}},
+    {id:'u5', name:'Priya N.',    cert:1, area:'Issaquah', phone:'***-**31', avail:{Mon:false,Tue:false,Wed:true,Thu:false,Fri:false,Sat:true,Sun:true}},
+  ],
+  matches: [
+    {id:'m1', home:'Redmond Rangers U15', away:'Bellevue Blasters U15', date:nextSat(), time:'09:00',
+     ground:'Marymoor Park, Redmond', format:'T20 (20 overs)', need:2, minCert:1, fee:40,
+     accepted:[{uid:'u2',confirmed:true}], status:'filled'},
+    {id:'m2', home:'Sammamish Strikers', away:'Issaquah Intl', date:nextSun(), time:'10:30',
+     ground:'Pine Lake Park, Sammamish', format:'40 overs', need:2, minCert:2, fee:50,
+     accepted:[], status:'open'},
+    {id:'m3', home:'Redmond Rangers 2nd XI', away:'Kirkland Kings', date:nextSat(), time:'14:00',
+     ground:'60 Acres South, Redmond', format:'T20 (20 overs)', need:1, minCert:0, fee:35,
+     accepted:[{uid:'u1',confirmed:true}], status:'confirmed'},
+  ],
+  notifs: [
+    {ico:'&#9989;', text:'Sanjay M. accepted Redmond Rangers U15 vs Bellevue Blasters U15 (Sat 9:00 AM).', t:'2h ago'},
+    {ico:'&#128276;', text:'New match posted: Sammamish Strikers vs Issaquah Intl needs 2 umpires.', t:'5h ago'},
+    {ico:'&#128197;', text:'You confirmed Ravi K. for Redmond Rangers 2nd XI vs Kirkland Kings.', t:'1d ago'},
+  ]
+};
+function nextSat(){return dateFor(6)} function nextSun(){return dateFor(0)}
+function dateFor(dow){const d=new Date();const diff=(dow+7-d.getDay())%7||7;d.setDate(d.getDate()+diff);return d.toISOString().slice(0,10)}
+
+/* ---------------- state ---------------- */
+let S;
+function load(){ try{S=JSON.parse(localStorage.getItem('cricump'))}catch(e){} if(!S||!S.matches){S=structuredClone(SEED)} }
+function save(){ localStorage.setItem('cricump', JSON.stringify(S)) }
+function reset(){ localStorage.removeItem('cricump'); S=structuredClone(SEED); save(); render(); toast('Demo data reset'); }
+
+/* ---------------- helpers ---------------- */
+const ump = id => S.umpires.find(u=>u.id===id);
+const meU = () => S.umpires.find(u=>u.name===S.me);
+function certLabel(c){return c===0?'-':'Level '+c}
+function certClass(c){return c===3?'lvl3':c===2?'lvl2':'lvl1'}
+function fmtDate(d){const x=new Date(d+'T00:00');return x.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
+function fmtTime(t){const[h,m]=t.split(':');const H=+h;return(H%12||12)+':'+m+' '+(H<12?'AM':'PM')}
+function statusOf(m){ if(m.accepted.length===0)return'open'; const conf=m.accepted.filter(a=>a.confirmed).length; if(conf>=m.need)return'confirmed'; if(m.accepted.length>=m.need)return'filled'; return'open'; }
+
+/* ---------------- tabs ---------------- */
+const TABS = {
+  organizer:[['matches','Matches'],['post','Post Match'],['directory','Directory'],['notifs','Notifications']],
+  umpire:[['matches','Open Matches'],['availability','My Availability'],['directory','Directory'],['notifs','Notifications']],
+};
+let current='matches';
+function buildTabs(){
+  const el=document.getElementById('tabs'); el.innerHTML='';
+  TABS[S.role].forEach(([id,label])=>{
+    const d=document.createElement('div'); d.className='tab'+(id===current?' active':'');
+    d.textContent=label; d.onclick=()=>go(id); el.appendChild(d);
+  });
+}
+function go(id){ current=id; document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active'); buildTabs(); window.scrollTo(0,0); }
+function setRole(r){ S.role=r; save(); if(!TABS[r].some(t=>t[0]===current))current='matches'; render(); }
+
+/* ---------------- render ---------------- */
+let filter='all';
+function render(){
+  document.getElementById('roleSelect').value=S.role;
+  buildTabs(); renderStats(); renderFilter(); renderMatches();
+  renderDirectory(); renderAvailability(); renderNotifs();
+}
+function renderStats(){
+  const open=S.matches.filter(m=>statusOf(m)==='open').length;
+  const filled=S.matches.filter(m=>statusOf(m)==='filled').length;
+  const conf=S.matches.filter(m=>statusOf(m)==='confirmed').length;
+  document.getElementById('stats').innerHTML=
+    `<div class="stat"><div class="n">${open}</div><div class="l">Need umpires</div></div>
+     <div class="stat"><div class="n">${filled}</div><div class="l">Awaiting confirm</div></div>
+     <div class="stat"><div class="n">${conf}</div><div class="l">Confirmed</div></div>
+     <div class="stat"><div class="n">${S.umpires.length}</div><div class="l">Umpires in pool</div></div>`;
+}
+function renderFilter(){
+  const fils=[['all','All'],['open','Need umpires'],['filled','Awaiting confirm'],['confirmed','Confirmed']];
+  document.getElementById('matchFilter').innerHTML=fils.map(([k,l])=>
+    `<span class="chip ${filter===k?'active':''}" onclick="filter='${k}';render()">${l}</span>`).join('');
+}
+function renderMatches(){
+  const host=document.getElementById('matchList');
+  let list=S.matches.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  if(filter!=='all') list=list.filter(m=>statusOf(m)===filter);
+  if(!list.length){host.innerHTML='<div class="empty">No matches here.</div>';return}
+  host.innerHTML=list.map(m=>matchCard(m)).join('');
+}
+function matchCard(m){
+  const st=statusOf(m);
+  const badge={open:'b-open',filled:'b-filled',confirmed:'b-confirmed'}[st];
+  const label={open:'Needs umpires',filled:'Awaiting confirm',confirmed:'Confirmed'}[st];
+  let slots='';
+  for(let i=0;i<m.need;i++){
+    const a=m.accepted[i];
+    if(a){const u=ump(a.uid);
+      slots+=`<div class="slot filled"><div class="who">${u.name} ${a.confirmed?'&#9989;':'&#8987;'}</div>
+        <div class="cert">${u.area} &middot; ${certLabel(u.cert)} &middot; ${a.confirmed?'Confirmed':'Pending confirm'}</div></div>`;
+    } else {
+      slots+=`<div class="slot"><div class="who" style="color:var(--muted)">Open slot</div>
+        <div class="cert">${m.minCert?('Needs '+certLabel(m.minCert)+'+'):'Any level'}</div></div>`;
+    }
+  }
+  return `<div class="card">
+    <div class="match-head">
+      <div>
+        <p class="match-title">${m.home} <span style="color:var(--muted);font-weight:400">vs</span> ${m.away}</p>
+        <p class="meta"><b>${fmtDate(m.date)}</b> &middot; ${fmtTime(m.time)}<br>
+        &#128205; ${m.ground}<br>
+        &#127951; ${m.format} &middot; ${m.need} umpire${m.need>1?'s':''} &middot; $${m.fee}/umpire</p>
+      </div>
+      <span class="badge ${badge}">${label}</span>
+    </div>
+    <div class="slots">${slots}</div>
+    <div class="row-actions">${matchActions(m,st)}</div>
+  </div>`;
+}
+function matchActions(m,st){
+  if(S.role==='umpire'){
+    const me=meU(); const mine=m.accepted.find(a=>a.uid===me.id);
+    if(mine) return `<button class="btn-red btn-sm" onclick="withdraw('${m.id}')">Withdraw</button>
+      <span class="hint" style="align-self:center">You're on this match ${mine.confirmed?'(confirmed)':'(pending organizer confirm)'}.</span>`;
+    if(m.accepted.length>=m.need) return `<button class="btn-ghost btn-sm" disabled>Slots full</button>`;
+    if(m.minCert && me.cert<m.minCert) return `<button class="btn-ghost btn-sm" disabled>Needs ${certLabel(m.minCert)}+</button>
+      <span class="hint" style="align-self:center">Your level is ${certLabel(me.cert)}.</span>`;
+    return `<button class="btn-green btn-sm" onclick="accept('${m.id}')">Accept this match</button>`;
+  }
+  let btns='';
+  const pending=m.accepted.filter(a=>!a.confirmed);
+  pending.forEach(a=>{ btns+=`<button class="btn-green btn-sm" onclick="confirmAssign('${m.id}','${a.uid}')">Confirm ${ump(a.uid).name}</button>`; });
+  btns+=`<button class="btn-red btn-sm" onclick="removeMatch('${m.id}')">Remove</button>`;
+  return btns;
+}
+
+/* ---------------- actions ---------------- */
+function accept(id){ const m=S.matches.find(x=>x.id===id); const me=meU();
+  m.accepted.push({uid:me.id,confirmed:false}); addNotif('&#9989;',`${me.name} accepted ${m.home} vs ${m.away}.`);
+  save(); render(); toast('Accepted. Organizer will confirm you.'); }
+function withdraw(id){ const m=S.matches.find(x=>x.id===id); const me=meU();
+  m.accepted=m.accepted.filter(a=>a.uid!==me.id); addNotif('&#8617;&#65039;',`${me.name} withdrew from ${m.home} vs ${m.away}.`);
+  save(); render(); toast('You withdrew from the match.'); }
+function confirmAssign(id,uid){ const m=S.matches.find(x=>x.id===id);
+  m.accepted.find(a=>a.uid===uid).confirmed=true; addNotif('&#128197;',`Confirmed ${ump(uid).name} for ${m.home} vs ${m.away}.`);
+  save(); render(); toast(ump(uid).name+' confirmed. Notification sent.'); }
+function removeMatch(id){ const m=S.matches.find(x=>x.id===id);
+  S.matches=S.matches.filter(x=>x.id!==id); addNotif('&#128465;&#65039;',`Removed ${m.home} vs ${m.away}.`);
+  save(); render(); toast('Match removed.'); }
+function postMatch(){
+  const home=val('f-home')||'Home XI', away=val('f-away')||'Away XI';
+  const date=val('f-date'); if(!date){toast('Pick a date');return}
+  const m={id:'m'+Date.now(), home, away, date, time:val('f-time')||'09:00',
+    ground:val('f-ground')||'TBD ground', format:val('f-format'),
+    need:parseInt(val('f-slots')), minCert:parseInt(val('f-cert')), fee:parseInt(val('f-fee')||'0'),
+    accepted:[], status:'open'};
+  S.matches.push(m); addNotif('&#128276;',`New match posted: ${home} vs ${away} needs ${m.need} umpire${m.need>1?'s':''}.`);
+  save(); ['f-home','f-away','f-ground'].forEach(i=>document.getElementById(i).value='');
+  go('matches'); render(); toast('Match posted. Umpires notified.');
+}
+const val=id=>document.getElementById(id).value;
+
+/* ---------------- directory ---------------- */
+function renderDirectory(){
+  document.getElementById('umpList').innerHTML=S.umpires.map(u=>{
+    const freeDays=Object.entries(u.avail).filter(([,v])=>v).map(([d])=>d).join(', ')||'None set';
+    return `<div class="card"><div class="ump">
+      <div class="avatar">${u.name[0]}</div>
+      <div class="ump-info">
+        <div class="ump-name">${u.name} <span class="lvl ${certClass(u.cert)}">${certLabel(u.cert)}</span></div>
+        <div class="ump-sub">&#128205; ${u.area} &middot; &#128222; ${u.phone}</div>
+        <div class="ump-sub" style="margin-top:3px">Free: ${freeDays}</div>
+      </div>
+    </div></div>`;
+  }).join('');
+}
+
+/* ---------------- availability ---------------- */
+function renderAvailability(){
+  const u=meU(); const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('availCard').innerHTML=days.map(d=>
+    `<div class="day-row"><span>${d}</span>
+      <label class="switch"><input type="checkbox" ${u.avail[d]?'checked':''} onchange="toggleDay('${d}',this.checked)">
+      <span class="track"><span class="knob"></span></span></label></div>`).join('');
+}
+function toggleDay(d,v){ meU().avail[d]=v; save(); renderDirectory(); toast('Availability updated for '+d); }
+
+/* ---------------- notifications ---------------- */
+function addNotif(ico,text){ S.notifs.unshift({ico,text,t:'just now'}); }
+function renderNotifs(){
+  document.getElementById('notifList').innerHTML=S.notifs.map(n=>
+    `<div class="notif"><span class="ico">${n.ico}</span><div><div>${n.text}</div><div class="t">${n.t}</div></div></div>`
+  ).join('')+`<div class="row-actions"><button class="btn-ghost btn-sm" onclick="reset()">Reset demo data</button></div>`;
+}
+
+/* ---------------- toast ---------------- */
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.innerHTML=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); }
+
+/* ---------------- boot ---------------- */
+load(); render();
+</script>
+</body>
+</html>
