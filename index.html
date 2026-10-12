@@ -366,7 +366,7 @@
           <div class="g2">
             <div><label class="fl">Ground / venue</label><input id="f-ground" placeholder="Marymoor Park, Redmond"></div>
             <div><label class="fl">Format</label>
-              <select id="f-format" class="fld">
+              <select id="f-format" class="fld" onchange="suggestFee()">
                 <option>T20</option><option>T10</option><option>40 overs</option><option>50 overs</option><option>Youth / Pairs</option>
               </select>
             </div>
@@ -380,7 +380,7 @@
             </div>
           </div>
           <label class="fl">Match fee per umpire (USD)</label><input id="f-fee" type="number" value="40" min="0">
-          <p class="hint">Fee is informational in the demo. Payments are out of scope for v1.</p>
+          <p class="hint">Suggested rate auto-fills from the format (longer matches pay more). You can override it. Payments are out of scope for v1.</p>
           <div class="mc-actions" style="margin-top:20px">
             <button class="btn-p" onclick="postMatch()">&#128276; Post match &amp; notify umpires</button>
             <button class="btn-o" onclick="go('matches')">Cancel</button>
@@ -651,6 +651,8 @@ function postMatch(){
   addNotif('&#128276;',`New match posted: <b>${home}</b> vs ${away}.`);
   save();['f-home','f-away','f-ground'].forEach(i=>document.getElementById(i).value='');
   go('matches');render();toast('Match posted. Umpires notified.')}
+const FEE_BY_FORMAT={'T10':25,'Youth / Pairs':30,'T20':40,'40 overs':55,'50 overs':65};
+function suggestFee(){const fee=FEE_BY_FORMAT[val('f-format')];if(fee!=null)document.getElementById('f-fee').value=fee;}
 const val=id=>document.getElementById(id).value;
 
 /* ================= directory ================= */
